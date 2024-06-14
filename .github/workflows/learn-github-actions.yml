@@ -9,8 +9,8 @@ permissions:
   contents: read # This is required for actions/checkout
 
 env:
-    AWS_REGION: "ap-northeast-2a"
-    ECR_REPOSITORY: "juju"
+    AWS_REGION: ap-northeast-2a
+    ECR_REPOSITORY: juju
 
 jobs:
   continuous-intigration:
