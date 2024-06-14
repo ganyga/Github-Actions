@@ -9,14 +9,14 @@ permissions:
   contents: read # This is required for actions/checkout
 
 env:
-    AWS_REGION: ap-northeast-2a
+    AWS_REGION: ap-northeast-2
     ECR_REPOSITORY: juju
 
 jobs:
   continuous-intigration:
-    runs-on: ubunut-latest
+    runs-on: ubunutu-latest
     steps:
-      - name: Git-Chekout
+      - name: Git-Checkout
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
