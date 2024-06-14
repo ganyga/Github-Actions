@@ -14,7 +14,7 @@ env:
 
 jobs:
   continuous-intigration:
-    runs-on: ubunutu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Git-Checkout
         uses: actions/checkout@v4
