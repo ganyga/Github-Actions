@@ -52,7 +52,6 @@ jobs:
 
       - name: Update manifest file image tag
         run: |
-          cd manifest-repo
           wget -q https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64
           sudo mv yq_linux_amd64 /usr/local/bin/yq
           sudo chmod +x /usr/local/bin/yq
@@ -60,7 +59,6 @@ jobs:
 
       - name: Setup Repository
         run: |
-          cd manifest-repo
           git config --global user.name "ganyga"
           git config --global user.email "artzana03@gmail.com"
           git remote set-url --push origin https://github.com/ganyga/manifest-repo.git
@@ -68,7 +66,6 @@ jobs:
 
       - name: Commit Manifest files
         run: |
-          cd manifest-repo
           git add .
           git commit -m "Update Manifest file Image Tag ${{ needs.continuous-integration.outputs.image }}"
           git push origin main
