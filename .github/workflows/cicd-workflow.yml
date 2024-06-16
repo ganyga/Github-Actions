@@ -1,0 +1,74 @@
+name: GitOps CI/CD
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
+
+env:
+    AWS_REGION: ap-northeast-2
+    ECR_REPOSITORY: juju
+
+jobs:
+  continuous-intigration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git-Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ECR_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -f ./Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+  
+  continuous-deployment:
+    runs-on: ubuntu-latest
+    needs: continuous-intigration # GITHUB_OUTPUT에 접근
+    steps:
+      - name: Checkout for Manifest Repository
+        uses: actions/checkout@v4
+        with:
+            repository: ganyga/manifest-repo
+            token: ${{ secrets.ACTION_TOKEN }}
+            path: manifest-repo
+
+      - name: Update manifest file image tag
+        run: |
+          cd manifest-repo
+          wget -q https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64
+          sudo mv yq_linux_amd64 /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+          yq e -i '.spec.template.spec.containers[0].image = "${{ needs.continuous-intigration.outputs.image }}"' 'manifest-repo/flask-app.yaml'
+
+      - name: Setup Repository
+        run: |
+          cd manifest-repo
+          git config --global user.name "ganyga"
+          git config --global user.email "artzana03@gmail.com"
+          git remote set-url --push origin https://github.com/ganyga/manifest-repo.git
+          git checkout -b release-${{ github.sha }}
+
+      - name: Commit Manifest files
+        run: |
+          cd manifest-repo
+          git add .
+          git commit -m "Update Manifest file Image Tag ${{ needs.continuous-integration.outputs.image }}"
+          git push origin main
