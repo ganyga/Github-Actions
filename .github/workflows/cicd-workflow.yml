@@ -50,7 +50,8 @@ jobs:
           token: ${{ secrets.ACTION_TOKEN }}
           path: manifest-repo
           fetch-depth: 1
-
+      
+      # manifest-repo에 이미지 태그 변경 반영
       - name: Update manifest file image tag
         run: |
           wget -q https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64
