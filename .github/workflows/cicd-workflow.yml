@@ -33,16 +33,12 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ github.sha }} 
         run: |
           docker build -f ./Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-  
-  continuous-deployment:
-    runs-on: ubuntu-latest
-    needs: continuous-intigration # GITHUB_OUTPUT에 접근
-    steps:
+
       - name: Fetch manifest repository
         uses: actions/checkout@v4
         with:
@@ -56,7 +52,7 @@ jobs:
           wget -q https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64
           sudo mv yq_linux_amd64 /usr/local/bin/yq
           sudo chmod +x /usr/local/bin/yq
-          yq e -i '.spec.template.spec.containers[0].image = "${{ needs.continuous-intigration.outputs.image }}"' 'manifest-repo/flask-app.yaml'
+          yq e -i '.spec.template.spec.containers[0].image = "${{ env.image }}"' 'manifest-repo/flask-app.yaml'
 
       - name: Setup repository
         working-directory: manifest-repo
@@ -64,11 +60,10 @@ jobs:
           git config --global user.name "ganyga"
           git config --global user.email "artzana03@gmail.com"
           git remote set-url --push origin https://github.com/ganyga/manifest-repo.git
-          git checkout -b release-${{ github.sha }}
 
       - name: Commit manifest files
         working-directory: manifest-repo
         run: |
           git add .
-          git commit -m "Update Manifest file Image Tag ${{ needs.continuous-integration.outputs.image }}"
+          git commit -m "Update Manifest file Image Tag ${{ env.image }}"
           git push origin main
