@@ -65,5 +65,5 @@ jobs:
         working-directory: manifest-repo
         run: |
           git add .
-          git commit -m "Update Manifest file Image Tag ${{ env.image }}"
+          git commit -m "Update Manifest file Image Tag $image"
           git push origin main
