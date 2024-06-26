@@ -52,7 +52,7 @@ jobs:
           wget -q https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64
           sudo mv yq_linux_amd64 /usr/local/bin/yq
           sudo chmod +x /usr/local/bin/yq
-          yq e -i '.spec.template.spec.containers[0].image = "${{ env.image }}"' 'manifest-repo/flask-app.yaml'
+          yq e -i '.spec.template.spec.containers.[0].image = "${{ env.image }}"' manifest-repo/flask-app.yaml
 
       - name: Setup repository
         working-directory: manifest-repo
@@ -65,5 +65,5 @@ jobs:
         working-directory: manifest-repo
         run: |
           git add .
-          git commit -m "Update Manifest file Image Tag $image"
+          git commit -m "Update Manifest file Image Tag ${{ github.sha}}"
           git push origin main
