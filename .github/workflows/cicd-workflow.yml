@@ -5,8 +5,8 @@ on:
     branches: [main]
 
 permissions:
-  id-token: write # This is required for requesting the JWT
-  contents: read # This is required for actions/checkout
+  id-token: write
+  contents: read
 
 env:
     AWS_REGION: ap-northeast-2
@@ -42,9 +42,9 @@ jobs:
       - name: Fetch manifest repository
         uses: actions/checkout@v4
         with:
-          repository: ganyga/manifest-repo
+          repository: ganyga/manifest
           token: ${{ secrets.ACTION_TOKEN }}
-          path: manifest-repo
+          path: manifest
           fetch-depth: 1
 
       - name: Update manifest file image tag
@@ -52,18 +52,18 @@ jobs:
           wget -q https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64
           sudo mv yq_linux_amd64 /usr/local/bin/yq
           sudo chmod +x /usr/local/bin/yq
-          yq e -i '.spec.template.spec.containers.[0].image = "${{ env.image }}"' manifest-repo/flask-app.yaml
+          yq e -i '.spec.template.spec.containers.[0].image = "${{ env.image }}"' manifest/flask-app.yaml
 
       - name: Setup repository
-        working-directory: manifest-repo
+        working-directory: manifest
         run: |
           git config --global user.name "ganyga"
           git config --global user.email "artzana03@gmail.com"
-          git remote set-url --push origin https://github.com/ganyga/manifest-repo.git
+          git remote set-url --push origin https://github.com/ganyga/manifest.git
 
       - name: Commit manifest files
-        working-directory: manifest-repo
+        working-directory: manifest
         run: |
           git add .
-          git commit -m "Update Manifest file Image Tag ${{ github.sha}}"
+          git commit -m "Update Manifest file Image Tag ${{ github.sha }}"
           git push origin main
