@@ -37,7 +37,7 @@ jobs:
         run: |
           docker build -f ./Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+          echo "IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Fetch manifest repository
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
           wget -q https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64
           sudo mv yq_linux_amd64 /usr/local/bin/yq
           sudo chmod +x /usr/local/bin/yq
-          yq e -i '.spec.template.spec.containers.[0].image = "${{ env.image }}"' manifest/flask-app.yaml
+          yq e -i '.spec.template.spec.containers.[0].image = "$IMAGE"' manifest/flask-app.yaml
 
       - name: Setup repository
         working-directory: manifest
@@ -65,5 +65,5 @@ jobs:
         working-directory: manifest
         run: |
           git add .
-          git commit -m "Update Manifest file Image Tag ${{ github.sha }}"
+          git commit -m "Update Manifest file Image Tag : ${{ github.sha }}"
           git push origin main
